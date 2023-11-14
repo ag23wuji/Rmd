@@ -1,0 +1,25 @@
+switch_structure <- function(data, type = NULL, id.vars = NULL, variable.name = "time", value.var = "value", melts_long = "x\\d+", set_numeric = TRUE) {
+  # Prüfen, ob type angegeben wurde
+  if (is.null(type)) {
+    # Eine Fehlermeldung ausgeben und abbrechen
+    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; id.vars = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; to complicated? Ask me :) godbersengodber@gmail.com")
+  }
+  # Prüfen, ob der Datensatz die Zeitpunkte als eigene Spalten hat
+  if (type == "long") {
+    if (any(grepl(melts_long, names(data)))) {
+      # Die Zeitpunkte als eigene Spalten zusammenfassen
+      # Die Spalte mit den Zeitpunkten in einen numerischen Wert umwandeln 
+      if (set_numeric == TRUE){
+# Die Spalte mit den Zeitpunkten in einen numerischen Wert umwandeln
+data[[variable.name]] <- as.numeric(sub(melts_long, "", data[[variable.name]]))
+}}
+   } else if (type == "short") {
+    # Eine Spalte mit Zeitpunkt und eine mit Wert haben
+    data <- reshape2::dcast(data, id.vars ~ paste0(variable.name, "_", melts_long), value.var = value.var)
+  } else {
+    # Eine Fehlermeldung ausgeben, wenn type keinen gültigen Wert hat
+    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; id.vars = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; to complicated? Ask me :) godbersengodber@gmail.com")
+  }
+  # Den umgewandelten Datensatz zurückgeben
+  return(data)
+}
