@@ -1,5 +1,3 @@
-```{r}
-
 # Define a function to create boxplots for all columns in a given data frame
 # Add parameters to allow the user to specify the data frame, the x-axis variable, the color variable, the theme options, and the option to save the plots
 des_boxplots <- function(data, x_var = "origin", color_var = "kultivar", title_prefix = "Boxplot of THC-Content by Cultivar and Origin", theme_options = list(), save_plots = FALSE) {
