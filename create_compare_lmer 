@@ -1,5 +1,3 @@
-# The plots are saved in the folder "boxplots" in the current working directory
-
 create_compare_lmer <- function(target, effects, data, test = "Chisq") {
   # Überprüfen Sie, ob die Effekte eine Liste sind
   if (!is.list(effects)) {
