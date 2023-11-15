@@ -1,1 +1,16 @@
-pacman::p_load(lmer4,tidyverse,reshape2,skimr)
+# install and load pacman
+if (!requireNamespace("pacman", quietly = TRUE))
+  install.packages("pacman")
+library(pacman)
+
+# define a function that takes a vector of package names, with a default value
+load_packages <- function(packages = c("dplyr", "tidyverse", "ggplot2", "janitor", "skimr", "ggpubr", "performance", "knitr", "xfun", "rmarkdown", "reshape2", "lme4")) {
+  # use p_load to install and load the packages
+  pacman::p_load(packages, character.only = TRUE)
+}
+
+# use the function to load the default packages
+load_packages()
+
+# use the function to load different packages
+load_packages(c("stringr", "lubridate", "ggthemes"))
