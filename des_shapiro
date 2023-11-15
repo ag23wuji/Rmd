@@ -1,4 +1,3 @@
-```{r}
 # Define a function to perform Shapiro-Wilk test on all numerical variables in a given data frame
 # Add a parameter to_csv to allow the user to choose whether to save the results or not
 # Add a parameter file_name to allow the user to specify the name of the output file
