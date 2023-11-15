@@ -47,4 +47,3 @@ des_boxplots <- function(data, x_var = "origin", color_var = "kultivar", title_p
   # Return the list of boxplots
   return(boxplots)
 }
-```
