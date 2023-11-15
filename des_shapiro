@@ -33,4 +33,3 @@ des_shapiro <- function(data, to_csv = FALSE, file_name = "output.csv") {
   
   return(shapiro_results_df)
 }
-```
