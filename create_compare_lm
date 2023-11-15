@@ -1,4 +1,3 @@
-```{r}
 create_compare_lm <- function(target, effects, data, test = "Chisq") {
   # Überprüfen Sie, ob die Effekte eine Liste sind
   if (!is.list(effects)) {
@@ -20,4 +19,3 @@ create_compare_lm <- function(target, effects, data, test = "Chisq") {
   # Geben Sie die ANOVA-Tabelle zurück
   return(anova_table)
 }
-```
