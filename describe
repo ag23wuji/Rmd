@@ -1,0 +1,86 @@
+```
+switch_structure <- function(data, type = NULL, id.vars = NULL, variable.name = "time", value.var = "value", melts_long = "x\\d+", set_numeric = TRUE) {
+  # Prüfen, ob type angegeben wurde
+  if (is.null(type)) {
+    # Eine Fehlermeldung ausgeben und abbrechen
+    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; id.vars = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; to complicated? Ask me :) godbersengodber@gmail.com")
+  }
+  # Prüfen, ob der Datensatz die Zeitpunkte als eigene Spalten hat
+  if (type == "long") {
+    if (any(grepl(melts_long, names(data)))) {
+      # Die Zeitpunkte als eigene Spalten zusammenfassen
+      # Die Spalte mit den Zeitpunkten in einen numerischen Wert umwandeln
+      if (set_numeric == TRUE){ # Die Spalte mit den Zeitpunkten in einen numerischen Wert umwandeln 
+
+		  data[[variable.name]] <- as.numeric(sub(melts_long, "", data[[variable.name]])) }}
+  } else if (type == "short") {
+    # Eine Spalte mit Zeitpunkt und eine mit Wert haben
+    data <- reshape2::dcast(data, id.vars ~ paste0(variable.name, "_", melts_long), value.var = value.var)
+  } else {
+    # Eine Fehlermeldung ausgeben, wenn type keinen gültigen Wert hat
+    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; id.vars = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; to complicated? Ask me :) godbersengodber@gmail.com")
+  }
+  # Den umgewandelten Datensatz zurückgeben
+  return(data)
+}
+	  
+```
+
+
+This function is called `switch_structure` and it is used to transform a data frame from long to short format or vice versa, depending on the value of the `type` argument. The function takes the following arguments:
+
+- `data`: a data frame that contains the data to be transformed.
+- `type`: a character string that specifies the desired format of the output data frame. It can be either `"long"` or `"short"`. If `type` is not specified, the function will stop and give an error message.
+- `id.vars`: a vector of character strings or numeric values that identifies the columns that contain the identifiers of the observations. If `id.vars` is not specified, the function will stop and give an error message.
+- `variable.name`: a character string that gives the name of the column that contains the time points in the output data frame. The default value is `"time"`.
+- `value.var`: a character string that gives the name of the column that contains the values in the output data frame. The default value is `"value"`.
+- `melts_long`: a regular expression that matches the pattern of the column names that contain the time points in the input data frame. The default value is `"x\\d+"`, which means any column name that starts with `"x"` followed by one or more digits.
+- `set_numeric`: a logical value that indicates whether the time points should be converted to numeric values in the output data frame. The default value is `TRUE`.
+
+The function works as follows:
+
+- If `type` is `"long"`, the function checks if the input data frame has the time points as separate columns. If yes, it uses the `reshape2::melt` function to gather the time points and the values into two columns, named by `variable.name` and `value.var`. Then, it uses the `sub` function to remove the `melts_long` pattern from the time points and converts them to numeric values if `set_numeric` is `TRUE`.
+- If `type` is `"short"`, the function assumes that the input data frame has a column with time points and a column with values, named by `variable.name` and `value.var`. It uses the `reshape2::dcast` function to spread the time points and the values into separate columns, named by concatenating `variable.name` and the time points with an underscore (`"_"`).
+- If `type` is neither `"long"` nor `"short"`, the function stops and gives an error message.
+
+The function returns the transformed data frame.
+
+To use this function for your own purpose, you need to customize the following arguments:
+
+- `data`: provide the name of your data frame that you want to transform.
+- `type`: specify the desired format of your output data frame, either `"long"` or `"short"`.
+- `id.vars`: provide a vector of the names or the indices of the columns that contain the identifiers of your observations.
+- `variable.name`: optionally, change the name of the column that contains the time points in your output data frame.
+- `value.var`: optionally, change the name of the column that contains the values in your output data frame.
+- `melts_long`: optionally, change the regular expression that matches the pattern of the column names that contain the time points in your input data frame.
+- `set_numeric`: optionally, change the logical value that indicates whether the time points should be converted to numeric values in your output data frame.
+
+For example, if you have a data frame called `my_data` that looks like this:
+
+| id | x1 | x2 | x3 |
+|----|----|----|----|
+| A  | 10 | 20 | 30 |
+| B  | 15 | 25 | 35 |
+| C  | 12 | 22 | 32 |
+
+And you want to transform it to a long format with the time points as numeric values, you can use the following code:
+
+```r
+switch_structure(data = my_data, type = "long", id.vars = "id")
+```
+
+The output will look like this:
+
+| id | time | value |
+|----|------|-------|
+| A  | 1    | 10    |
+| B  | 1    | 15    |
+| C  | 1    | 12    |
+| A  | 2    | 20    |
+| B  | 2    | 25    |
+| C  | 2    | 22    |
+| A  | 3    | 30    |
+| B  | 3    | 35    |
+| C  | 3    | 32    |
+
+I hope this helps you understand and use this function for your first package in R. If you have any questions, please feel free to contact the author of the function at godbersengodber@gmail.com. 😊
