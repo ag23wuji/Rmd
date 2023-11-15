@@ -1,1 +1,1 @@
-pacman::p_load(nlme,tidyverse, openxlsx, svglite, MASS, reshape2, reshape, ggtext, ggplot2, multcomp, ez, measurements, DescTools, car, AICcmodavg, emmeans, multcompView)
+pacman::p_load(lmer4,tidyverse,reshape2,skimr)
