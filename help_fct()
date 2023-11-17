@@ -71,6 +71,25 @@ print(
   "tra_switch = tra_switch(data, type = NULL, variable.name = "time", value.var = "value", melts_long = "x\\d+", set_numeric = TRUE, ids= NULL, type_extra = FALSE) is a function that transforms data from long to short format or vice versa. It takes the following arguments data: the data frame to be transformed type: the type of transformation, either "long" or "short" variable.name: the name of the variable for time, default is "time" value.var: the name of the value variable, default is "value" melts_long: the pattern to identify time columns, default is "x\\d+" set_numeric: a logical value indicating whether to set numeric time, default is TRUE  ids: the ids to use for melting or casting, default is NULL  type_extra: a logical value indicating whether to use extra type if no pattern is given, default is FALSE; The function checks if the type argument is specified, and if the data has time points as separate columns. Depending on the type argument, it uses the reshape2 package to melt or cast the data, using the variable.name, value.var, melts_long, ids, and type_extra arguments. It also converts the time variable to numeric if set_numeric is TRUE. It returns the transformed data."
   )}
 
+if(fct == "create_custom_histograms") {print( # Add a description for create_custom_histograms using roxygen2 syntax
+#' Create custom histograms based on user inputs
+#'
+#' This function creates custom histograms for all numerical variables in a given data frame, using the ggplot2 package. 
+#' It takes the following arguments:
+#'
+#' @param data The data frame to be analyzed
+#' @param method_col The name of the column that contains the method names
+#' @param value_col The name of the column that contains the values
+#' @param bins The number of bins for the histograms, default is 30
+#' @param color The color for the histograms, default is "blue"
+#' @param alpha The transparency for the histograms, default is 0.5
+#' @param to_csv A logical value indicating whether to save the histograms as .csv files, default is FALSE
+#' @param file_name The name of the output file, default is "histograms.csv"
+#' @return A list of the data, the overview, and the histograms
+#' @examples
+#' customs <- create_custom_histograms(distinct_bayern_eins, "methode", "messwerte", bins = 20, color = "red", to_csv = TRUE)
+#' print(customs$histograms)" 
 }
+
 
 
