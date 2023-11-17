@@ -1,0 +1,15 @@
+# Erstellen Sie eine neue Funktion help_fct() mit Argumenten, die Hilfetexte für jede Funktion ausgeben, wenn sie als Eingabe gesetzt werden
+help_fct <- function(fct) {
+  # Überprüfen Sie, ob fct eine gültige Funktion ist
+  if (!is.function(fct)) {
+    stop("fct must be a valid function, see help_fct('help_fct')")
+  }
+  # Erstellen Sie eine Liste von Hilfetexten für jede Funktion
+  help_list <- list(
+    cc_lmer = "cc_lmer(target, effects, data, test = 'Chisq') creates and compares linear mixed models using lme4::lmer. target is the response variable, effects is a list of effects to include in the models, data is the data frame, and test is the type of test to use for the anova. The function returns a list of anova_table, model_list, and summary_list.",
+    cc_glmer = "cc_glmer(target, effects, data, test = 'Chisq') creates and compares generalized linear mixed models using lme4::glmer. target is the response variable, effects is a list of effects to include in the models, data is the data frame, and test is the type of test to use for the anova. The function returns a list of anova_table, model_list, and summary_list.",
+    cc_lm = "cc_lm(target, effects, data, test = 'Chisq') creates and compares linear models using lm. target is the response variable, effects is a list of effects to include in the models, data is the data frame, and test is the type of test to use for the anova. The function returns a list of anova_table, model_list, and summary_list."
+  )
+  # Geben Sie den Hilfetext für die angegebene Funktion aus
+  cat(help_list[[fct]])
+}
