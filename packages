@@ -14,7 +14,7 @@ if (length(packages) == 0) {
   stop("packages must not be empty, see help_fct('load_packages')")
 }
 
-for packages {
+for (packages) {
   # use p_load to install and load the packages
   pacman::p_load(packages, character.only = TRUE)
 
