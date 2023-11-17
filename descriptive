@@ -198,7 +198,7 @@ if (is.numeric(data[[k]])) { # Create a file name for the density plot filename 
   }
 }
 
-}
+
 
 #Return a list of the data, the overview, and the density plots
 return(list(data = data, overview = overview, density_plots = density_plots)) }
