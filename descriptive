@@ -128,7 +128,7 @@ ask me :) godbersengodber@gmail.com")}
  
 
 # Define a function that creates custom histograms based on user inputs
-create_custom_histograms <- function(data, method_col, bins = 30, color = "blue", alpha = 0.5, to_csv = FALSE, file_name = "histograms.csv") {
+create_custom_histograms <- function(data, method_col, bins = 30, color = "blue", alpha = 0.5, to_jpg = FALSE, file_name = "histograms.csv") {
   
   # Create a new column named "method_id" containing a number for each unique 'methode' name
   data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[method_col]])))
@@ -152,14 +152,14 @@ create_custom_histograms <- function(data, method_col, bins = 30, color = "blue"
   }
   
   # If the user chooses to save the histograms, save them as .csv files in a folder
-  if (to_csv) {
+  if (to_jpg) {
     # Create a folder to store the histograms
     dir.create("histograms")
     for (k in names(data)) {
       # Check if the k-th column is numeric
       if (is.numeric(data[[k]])) {
         # Create a file name for the histogram
-        filename <- paste("histograms/histogram_", k, ".csv", sep = "")
+        filename <- paste("histograms/histogram_", k, ".jpg", sep = "")
         
         # Save the histogram as a .csv file
         ggsave(filename, histograms[[k]])
