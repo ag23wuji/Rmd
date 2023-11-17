@@ -190,7 +190,8 @@ for (k in names(data)) { # Check if the k-th column is numeric if (is.numeric(da
 }
 
 #If the user chooses to save the density plots, save them as .csv files in a folder
-if (to_jpg==TRUE) { # Create a folder to store the density plots dir.create("density_plots") for (k in names(data)) { # Check if the k-th column is numeric if (is.numeric(data[[k]])) { # Create a file name for the density plot filename <- paste("density_plots/density_plot_", k, ".jpg", sep = "")
+if (to_jpg==TRUE) { # Create a folder to store the density plots dir.create("density_plots") for (k in names(data)) { # Check if the k-th column is #numeric 
+if (is.numeric(data[[k]])) { # Create a file name for the density plot filename <- paste("density_plots/density_plot_", k, ".jpg", sep = "")
 
     # Save the density plot as a .csv file
     ggsave(filename, density_plots[[k]])
