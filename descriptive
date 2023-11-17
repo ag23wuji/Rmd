@@ -6,29 +6,32 @@ des_boxplots <- function(data, x_var = "origin", color_var = "kultivar", title_p
 
   # Loop over the names of the columns
   for (k in names(data)) {
-    # Create a boxplot for the k-th column
-    bxp <- ggboxplot(
-      data, x = x_var, y = k,
-      color = color_var,
-      title = paste(title_prefix, k),
-      bxp.errorbar = TRUE
-    )
+    # Check if the k-th column is numeric
+    if (is.numeric(data[[k]])) {
+      # Create a boxplot for the k-th column
+      bxp <- ggboxplot(
+        data, x = x_var, y = k,
+        color = color_var,
+        title = paste(title_prefix, k),
+        bxp.errorbar = TRUE
+      )
 
-    # Customize the theme
-    bxp <- bxp + theme(
-      plot.title = element_text(hjust = 0.5),
-      panel.background = element_rect(fill = "#FFFFFF"),
-      panel.border = element_rect(colour = "black", fill = NA, size = 2),
-      legend.text = element_text(size = 6)  # Set the legend text size to 8
-    ) + scale_y_continuous(minor_breaks = waiver())
+      # Customize the theme
+      bxp <- bxp + theme(
+        plot.title = element_text(hjust = 0.5),
+        panel.background = element_rect(fill = "#FFFFFF"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 2),
+        legend.text = element_text(size = 6)  # Set the legend text size to 8
+      ) + scale_y_continuous(minor_breaks = waiver())
 
-    # Apply the user-specified theme options
-    for (option in names(theme_options)) {
-      bxp <- bxp + theme_options[[option]]
+      # Apply the user-specified theme options
+      for (option in names(theme_options)) {
+        bxp <- bxp + theme_options[[option]]
+      }
+
+      # Save the boxplot in the list
+      boxplots[[k]] <- bxp
     }
-
-    # Save the boxplot in the list
-    boxplots[[k]] <- bxp
   }
 
   # If the user chooses to save the plots, save them as .jpg files
@@ -36,17 +39,21 @@ des_boxplots <- function(data, x_var = "origin", color_var = "kultivar", title_p
     # Create a folder to store the plots
     dir.create("boxplots")
     for (k in names(data)) {
-      # Create a file name for the boxplot
-      filename <- paste("boxplots/boxplot_spalte", k, ".jpg", sep = "")
+      # Check if the k-th column is numeric
+      if (is.numeric(data[[k]])) {
+        # Create a file name for the boxplot
+        filename <- paste("boxplots/boxplot_spalte", k, ".jpg", sep = "")
 
-      # Save the boxplot as a .jpg file
-      ggsave(filename, boxplots[[k]])
+        # Save the boxplot as a .jpg file
+        ggsave(filename, boxplots[[k]])
+      }
     }
   }
 
   # Return the list of boxplots
   return(boxplots)
 }
+
 
 # Define a function to perform Shapiro-Wilk test on all numerical variables in a given data frame
 # Add a parameter to_csv to allow the user to choose whether to save the results or not
