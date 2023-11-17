@@ -126,3 +126,52 @@ ask me :) godbersengodber@gmail.com")}
   return(df_structured)
 }}
  
+
+# Define a function that creates custom histograms based on user inputs
+create_custom_histograms <- function(data, method_col, value_col, bins = 30, color = "blue", alpha = 0.5, to_csv = FALSE, file_name = "histograms.csv") {
+  
+  # Create a new column named "method_id" containing a number for each unique 'methode' name
+  data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[method_col]])))
+  
+  # Get the overview of the data using the overview() function
+  overview <- overview(data)
+  
+  # Create an empty list to store the histograms
+  histograms <- list()
+  
+  # Loop over the names of the numeric columns
+  for (k in names(data)) {
+    # Check if the k-th column is numeric
+    if (is.numeric(data[[k]])) {
+      # Create a histogram for the k-th column
+      hist <- ggplot(data, aes(x = .data[[k]])) +
+        geom_histogram(bins = bins, color = color, fill = color, alpha = alpha) +
+        facet_wrap(~ method_id, scales = "free") + theme_minimal() +
+        labs(title = paste("Histogram of", k))
+      
+      # Save the histogram in the list
+      histograms[[k]] <- hist
+    }
+  }
+  
+  # If the user chooses to save the histograms, save them as .csv files in a folder
+  if (to_csv) {
+    # Create a folder to store the histograms
+    dir.create("histograms")
+    for (k in names(data)) {
+      # Check if the k-th column is numeric
+      if (is.numeric(data[[k]])) {
+        # Create a file name for the histogram
+        filename <- paste("histograms/histogram_", k, ".csv", sep = "")
+        
+        # Save the histogram as a .csv file
+        ggsave(filename, histograms[[k]])
+      }
+    }
+  }
+  
+  # Return a list of the data, the overview, and the histograms
+  return(list(data = data, overview = overview, histograms = histograms))
+}
+
+# Example usage:
