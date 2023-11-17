@@ -173,5 +173,3 @@ create_custom_histograms <- function(data, method_col, value_col, bins = 30, col
   # Return a list of the data, the overview, and the histograms
   return(list(data = data, overview = overview, histograms = histograms))
 }
-
-# Example usage:
