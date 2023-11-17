@@ -128,13 +128,10 @@ ask me :) godbersengodber@gmail.com")}
  
 
 # Define a function that creates custom histograms based on user inputs
-create_custom_histograms <- function(data, method_col, value_col, bins = 30, color = "blue", alpha = 0.5, to_csv = FALSE, file_name = "histograms.csv") {
+create_custom_histograms <- function(data, method_col, bins = 30, color = "blue", alpha = 0.5, to_csv = FALSE, file_name = "histograms.csv") {
   
   # Create a new column named "method_id" containing a number for each unique 'methode' name
   data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[method_col]])))
-  
-  # Get the overview of the data using the overview() function
-  overview <- overview(data)
   
   # Create an empty list to store the histograms
   histograms <- list()
