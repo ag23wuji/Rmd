@@ -181,7 +181,9 @@ data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[me
 density_plots <- list()
 
 #Loop over the names of the numeric columns
-for (k in names(data)) { # Check if the k-th column is numeric if (is.numeric(data[[k]])) { # Create a density plot for the k-th column dens <- ggplot(data, aes(x = .data[[k]], fill = factor(method_id))) + geom_density(color = color, alpha = alpha) + facet_wrap(~ method_id, scales = "free") + theme_minimal() + labs(title = paste("Density plot of", k))
+for (k in names(data)) { # Check if the k-th column is numeric if (is.numeric(data[[k]])) { # Create a density plot for the k-th column 
+
+dens <- ggplot(data, aes(x = .data[[k]], fill = factor(method_id))) + geom_density(color = color, alpha = alpha) + facet_wrap(~ method_id, scales = "free") + theme_minimal() + labs(title = paste("Density plot of", k))
 
   # Save the density plot in the list
   density_plots[[k]] <- dens
