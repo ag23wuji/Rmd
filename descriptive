@@ -199,7 +199,6 @@ filename <- paste("density_plots/density_plot_", k, ".jpg", sep = "")
   }
 }
 
-}
 
 #Return a list of the data, the overview, and the density plots
 return(list(data = data, overview = overview, density_plots = density_plots)) 
