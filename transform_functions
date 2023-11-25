@@ -1,0 +1,198 @@
+# Define a function called process_dataset that takes several parameters to process a dataset; this is just a test! 
+tra_process <- function(input_data, output_file = "meandata/means.csv",  cols_drop = NULL, cols_rename = NULL, cols_group = NULL, to_csv = FALSE) {
+
+   # Convert the data frame to a tibble
+  data <- tibble::as_tibble(input_data)
+
+  # Check the structure 
+  tidyverse::glimpse(data)
+
+
+  # If needed, delete a specific column
+  if (!is.null(cols_drop)) {
+    data <- data %>% 
+      dplyr::select(-all_of(cols_drop))
+  } 
+
+    # If needed, rename specific columns
+  if (!is.null(cols_rename)) {
+    data <- dplyr::rename(data, !!cols_rename)
+    } 
+
+
+   # Group the data frame by specified columns and calculate the mean of numeric columns
+  if (!is.null(cols_group)) {
+    means_data <- data %>% 
+      dplyr::group_by(across(all_of(cols_group))) %>%
+      dplyr::summarize(across(where(is.numeric), mean, na.rm = TRUE), 
+                       across(where(is.character), ~first(.)),.groups="drop")
+    tidyverse::glimpse(means_data)
+
+  }
+
+      else if (is.null(cols_group)) {print("Missing group parameter 'cols_group'. Set grouping variables from which the rows shall get meaned, otherwise it is not possible to create any summarized rows.")}
+
+
+    if(to_csv == TRUE) {
+    # Write the processed data frame to a CSV file
+    readr::write_csv(means_data, file = output_file)
+  } 
+
+  return(means_data)
+}
+
+help_tra_process <- function() {
+  print("tra_process is a function that takes several parameters to process a dataset. It converts the input data frame to a tibble, drops and renames columns if needed, groups the data by specified columns and calculates the mean of numeric columns, and writes the processed data to a CSV file.
+
+The parameters are:
+
+- input_data: A data frame to be processed.
+- output_file: A character string specifying the path and name of the output CSV file. The default is 'meandata/means.csv'.
+- cols_drop: A character or numeric vector of column names or numbers to be dropped from the input data frame. The default is NULL, which means no columns will be dropped.
+- cols_rename: A named character or numeric vector of column names or numbers to be renamed in the input data frame. The names of the vector are the new names and the values are the old names or numbers. The default is NULL, which means no columns will be renamed.
+- cols_group: A character or numeric vector of column names or numbers to be used as grouping variables in the input data frame. The default is NULL, which means no grouping will be performed.
+- to_csv: A logical value indicating whether to write the processed data to a CSV file. The default is FALSE, which means no file will be written.
+
+The function returns a tibble of the processed data, which is also written to the output CSV file if to_csv is TRUE. It also prints the structure of the input and output data frames using glimpse.
+
+Examples of using the function are:
+
+# Load the iris dataset
+data(iris)
+
+# Process the iris dataset using tra_process with column names
+tra_process(input_data = iris, 
+            output_file = 'iris_means.csv', 
+            cols_drop = 'Species', 
+            cols_rename = c('Sepal.Length' = 'sepal_length', 'Sepal.Width' = 'sepal_width'), 
+            cols_group = c('Petal.Length', 'Petal.Width'),
+            to_csv = TRUE)
+
+# Process the iris dataset using tra_process with column numbers
+tra_process(input_data = iris, 
+            output_file = 'iris_means.csv', 
+            cols_drop = 5, 
+            cols_rename = c(`1` = 'sepal_length', `2` = 'sepal_width'), 
+            cols_group = c(3, 4),
+            to_csv = TRUE)")
+}
+
+tra_switch <- function(data, type = NULL, variable.name = "time", value.var = "value", melts_long = "x\\d+", set_numeric = TRUE, ids= NULL, type_extra = FALSE) {
+  # Prüfen, ob type angegeben wurde
+  if (is.null(type)) {
+    # Eine Fehlermeldung ausgeben und abbrechen
+    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; ids = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; type_extra = TRUE/FALSE if no pattern is given, melt by colindex; to complicated? Ask me :) godbersengodber@gmail.com")
+  }
+  # Prüfen, ob der Datensatz die Zeitpunkte als eigene Spalten hat
+  if (type == "long") {
+    if (any(grepl(melts_long, names(data)))) {
+      # Die Zeitpunkte als eigene Spalten zusammenfassen
+      data <- reshape2::melt(data, id.vars = names(data)[!grepl(melts_long, names(data))], variable.name = variable.name, value.name = value.var)
+    }
+
+    if(type_extra == TRUE) { 
+      data <- reshape2::melt(data, id.vars = ids)
+
+      # Die Spalte mit den Zeitpunkten in einen numerischen Wert umwandeln
+      if (set_numeric == TRUE) {
+        data[[variable.name]] <- as.numeric(sub(melts_long, "", data[[variable.name]]))
+      }
+    }
+  } else if (type == "short") {
+    # Eine Spalte mit Zeitpunkt und eine mit Wert haben
+    data <- reshape2::dcast(data, id.vars ~ paste0(variable.name, "_", melts_long), value.var = value.var)
+  } else {
+    # Eine Fehlermeldung ausgeben, wenn type keinen gültigen Wert hat
+    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; ids = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; type_extra = TRUE/FALSE if no pattern is given, melt by colindex; to complicated? Ask me :) godbersengodber@gmail.com")
+  }
+  # Den umgewandelten Datensatz zurückgeben
+  return(data)
+}
+
+ # Define a function that takes a data frame and a vector of column names as arguments
+# The function calculates the change rates between consecutive columns
+# The function removes the rows with missing values by default, unless specified otherwise
+# The function returns a modified data frame with the new columns added
+tra_growthrates <- function(data, columns, na.omit = TRUE) {
+  # Check if the arguments are valid
+  if (!is.data.frame(data)) {
+    stop("data must be a data frame")
+  }
+  if (!is.character(columns) || length(columns) < 2) {
+    stop("columns must be a character vector of length at least 2")
+  }
+  if (!is.logical(na.omit)) {
+    stop("na.omit must be a logical value")
+  }
+  # Create a copy of the data frame to avoid modifying the original one
+  data_copy <- data
+  # Remove the rows with missing values if na.omit is TRUE
+  if (na.omit) {
+    data_copy <- tidyr::na.omit(data_copy)
+  }
+  # Loop through the column names and calculate the change rates
+  for (i in 1:(length(columns) - 1)) {
+    # Create a new column name based on the current and next column names
+    new_column <- paste0("change_rate_", columns[i], "_", columns[i + 1])
+    # Calculate the change rate between the current and next columns
+    data_copy[[new_column]] <- (data_copy[[columns[i + 1]]] - data_copy[[columns[i]]]) / data_copy[[columns[i]]]
+  }
+  # Return the modified data frame
+  return(data_copy)
+}
+
+help_tra <- function(typ = c("tra_switch", "tra_growthrates")) {
+  # Check if typ is a valid argument
+  if (!is.character(typ) || !typ %in% c("tra_switch", "tra_growthrates")) {
+    stop("typ must be one of 'tra_switch' or 'tra_growthrates', see help_tra()")
+  }
+  # Print the help text according to the typ argument
+  if (typ == "tra_switch") {
+    cat("tra_switch is a function that takes several parameters to process a dataset. It can switch the dataset from long to short format, or vice versa, depending on the type argument. It can also melt the dataset by column names or indices, and convert the time variable to numeric values. It takes the following arguments:
+
+- data: A data frame containing the dataset to be processed.
+- type: A character string specifying the desired format of the dataset. It can be either 'long' or 'short'. If 'long', the function will melt the dataset by the time variable and the value variable. If 'short', the function will cast the dataset by the id variables and the time variable.
+- variable.name: A character string specifying the name of the time variable in the formula. The default is 'time'.
+- value.var: A character string specifying the name of the value variable in the formula. The default is 'value'.
+- melts_long: A character string specifying the pattern of the column names that contain the time variable. The default is 'x\\d+'.
+- set_numeric: A logical value indicating whether to convert the time variable to numeric values. The default is TRUE.
+- ids: A vector of character strings or numeric values specifying the id variables in the formula. The default is NULL.
+- type_extra: A logical value indicating whether to melt the dataset by column indices if no pattern is given. The default is FALSE.
+
+The function returns a data frame with the processed dataset.
+
+An example of using the function is:
+
+# Load the airquality dataset
+data(airquality)
+
+# Process the dataset using tra_switch
+tra_switch(data = airquality, 
+           type = 'long', 
+           variable.name = 'month', 
+           value.var = 'ozone', 
+           melts_long = 'Month', 
+           set_numeric = TRUE, 
+           ids = c('Ozone', 'Solar.R', 'Wind', 'Temp', 'Day'), 
+           type_extra = FALSE)")
+  }
+  if (typ == "tra_growthrates") {
+    cat("tra_growthrates is a function that takes a data frame and a vector of column names as arguments. The function calculates the change rates between consecutive columns. The function removes the rows with missing values by default, unless specified otherwise. The function returns a modified data frame with the new columns added. It takes the following arguments:
+
+- data: A data frame containing the dataset to be processed.
+- columns: A vector of character strings specifying the names of the columns to be used for calculating the change rates. The length of the vector must be at least 2.
+- na.omit: A logical value indicating whether to remove the rows with missing values. The default is TRUE.
+
+The function returns a data frame with the original columns and the new columns added. The new columns have the names 'change_rate_column1_column2', where column1 and column2 are the names of the consecutive columns used for calculating the change rates.
+
+An example of using the function is:
+
+# Load the iris dataset
+data(iris)
+
+# Process the dataset using tra_growthrates
+tra_growthrates(data = iris, 
+                columns = c('Sepal.Length', 'Sepal.Width', 'Petal.Length', 'Petal.Width'), 
+                na.omit = TRUE)")
+  }
+}
