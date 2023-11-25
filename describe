@@ -1,86 +1,208 @@
-```
-switch_structure <- function(data, type = NULL, id.vars = NULL, variable.name = "time", value.var = "value", melts_long = "x\\d+", set_numeric = TRUE) {
-  # Prüfen, ob type angegeben wurde
-  if (is.null(type)) {
-    # Eine Fehlermeldung ausgeben und abbrechen
-    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; id.vars = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; to complicated? Ask me :) godbersengodber@gmail.com")
-  }
-  # Prüfen, ob der Datensatz die Zeitpunkte als eigene Spalten hat
-  if (type == "long") {
-    if (any(grepl(melts_long, names(data)))) {
-      # Die Zeitpunkte als eigene Spalten zusammenfassen
-      # Die Spalte mit den Zeitpunkten in einen numerischen Wert umwandeln
-      if (set_numeric == TRUE){ # Die Spalte mit den Zeitpunkten in einen numerischen Wert umwandeln 
+# Define a function to create boxplots for all columns in a given data frame
+# Add parameters to allow the user to specify the data frame, the x-axis variable, the color variable, the theme options, and the option to save the plots
+des_boxplots <- function(data, x_var = "origin", color_var = "kultivar", title_prefix = "Boxplot", theme_options = list(), save_plots = FALSE) {
+  # Create an empty list to store the boxplots
+  boxplots <- list()
 
-		  data[[variable.name]] <- as.numeric(sub(melts_long, "", data[[variable.name]])) }}
-  } else if (type == "short") {
-    # Eine Spalte mit Zeitpunkt und eine mit Wert haben
-    data <- reshape2::dcast(data, id.vars ~ paste0(variable.name, "_", melts_long), value.var = value.var)
-  } else {
-    # Eine Fehlermeldung ausgeben, wenn type keinen gültigen Wert hat
-    stop("Error :/ You probably forgot to set arguments! Help: type = long or short; id.vars = id's to colindizes; variable.name = default is set to >time<; value.var = default is set to >value<; time_pattern = default is set to >x\\d+<; to complicated? Ask me :) godbersengodber@gmail.com")
+  # Loop over the names of the columns
+  for (k in names(data)) {
+    # Check if the k-th column is numeric
+    if (is.numeric(data[[k]])) {
+      # Create a boxplot for the k-th column
+      bxp <- ggboxplot(
+        data, x = x_var, y = k,
+        color = color_var,
+        title = paste(title_prefix, k),
+        bxp.errorbar = TRUE
+      )
+
+      # Customize the theme
+      bxp <- bxp + theme(
+        plot.title = element_text(hjust = 0.5),
+        panel.background = element_rect(fill = "#FFFFFF"),
+        panel.border = element_rect(colour = "black", fill = NA, size = 2),
+        legend.text = element_text(size = 6)  # Set the legend text size to 8
+      ) + scale_y_continuous(minor_breaks = waiver())
+
+      # Apply the user-specified theme options
+      for (option in names(theme_options)) {
+        bxp <- bxp + theme_options[[option]]
+      }
+
+      # Save the boxplot in the list
+      boxplots[[k]] <- bxp
+    }
   }
-  # Den umgewandelten Datensatz zurückgeben
-  return(data)
+
+  # If the user chooses to save the plots, save them as .jpg files
+  if (save_plots) {
+    # Create a folder to store the plots
+    dir.create("boxplots")
+    for (k in names(data)) {
+      # Check if the k-th column is numeric
+      if (is.numeric(data[[k]])) {
+        # Create a file name for the boxplot
+        filename <- paste("boxplots/boxplot_spalte", k, ".jpg", sep = "")
+
+        # Save the boxplot as a .jpg file
+        ggsave(filename, boxplots[[k]])
+      }
+    }
+  }
+
+  # Return the list of boxplots
+  return(boxplots)
 }
-	  
-```
 
 
-This function is called `switch_structure` and it is used to transform a data frame from long to short format or vice versa, depending on the value of the `type` argument. The function takes the following arguments:
+# Define a function to perform Shapiro-Wilk test on all numerical variables in a given data frame
+# Add a parameter to_csv to allow the user to choose whether to save the results or not
+# Add a parameter file_name to allow the user to specify the name of the output file
+# Set the default value of file_name to "output.csv"
+des_shapiro <- function(data, to_csv = FALSE, file_name = "output.csv") {
+  numeric_columns <- sapply(data, is.numeric)
+  column_numbers <- which(numeric_columns)
 
-- `data`: a data frame that contains the data to be transformed.
-- `type`: a character string that specifies the desired format of the output data frame. It can be either `"long"` or `"short"`. If `type` is not specified, the function will stop and give an error message.
-- `id.vars`: a vector of character strings or numeric values that identifies the columns that contain the identifiers of the observations. If `id.vars` is not specified, the function will stop and give an error message.
-- `variable.name`: a character string that gives the name of the column that contains the time points in the output data frame. The default value is `"time"`.
-- `value.var`: a character string that gives the name of the column that contains the values in the output data frame. The default value is `"value"`.
-- `melts_long`: a regular expression that matches the pattern of the column names that contain the time points in the input data frame. The default value is `"x\\d+"`, which means any column name that starts with `"x"` followed by one or more digits.
-- `set_numeric`: a logical value that indicates whether the time points should be converted to numeric values in the output data frame. The default value is `TRUE`.
+  # Apply lapply to perform Shapiro-Wilk test only on variables with more than one unique value and a standard deviation > 0
+  shapiro_results <- lapply(data[, column_numbers], function(x) {
+    x <- na.omit(x)
+    if (length(unique(x)) > 1 && sd(x) != 0) shapiro.test(x)
+  })
 
-The function works as follows:
+  # Remove NULL results (these come from variables with identical values or a standard deviation of zero, e.g. med_esketamin_mg)
+  shapiro_results <- shapiro_results[!sapply(shapiro_results, is.null)]
 
-- If `type` is `"long"`, the function checks if the input data frame has the time points as separate columns. If yes, it uses the `reshape2::melt` function to gather the time points and the values into two columns, named by `variable.name` and `value.var`. Then, it uses the `sub` function to remove the `melts_long` pattern from the time points and converts them to numeric values if `set_numeric` is `TRUE`.
-- If `type` is `"short"`, the function assumes that the input data frame has a column with time points and a column with values, named by `variable.name` and `value.var`. It uses the `reshape2::dcast` function to spread the time points and the values into separate columns, named by concatenating `variable.name` and the time points with an underscore (`"_"`).
-- If `type` is neither `"long"` nor `"short"`, the function stops and gives an error message.
+  shapiro_results_df <- data.frame(data = character(), W = numeric(), p_value = numeric(), stringsAsFactors = FALSE)
 
-The function returns the transformed data frame.
+  # Loop over the names of the columns
+  for (column_number in column_numbers) {
+    # Check if the result is not NULL
+    if (!is.null(shapiro_results[[column_number]])) {
+      result <- shapiro_results[[column_number]]
+      shapiro_results_df <- rbind(shapiro_results_df, data.frame(data = names(data)[column_number], W = result$statistic, p_value = result$p.value))
+    }
+  }
 
-To use this function for your own purpose, you need to customize the following arguments:
+  # If the user chooses to save the results, write them to a CSV file with the given file name
+  if (to_csv) {
+    write.csv(shapiro_results_df, file_name, row.names = FALSE)
+  }
 
-- `data`: provide the name of your data frame that you want to transform.
-- `type`: specify the desired format of your output data frame, either `"long"` or `"short"`.
-- `id.vars`: provide a vector of the names or the indices of the columns that contain the identifiers of your observations.
-- `variable.name`: optionally, change the name of the column that contains the time points in your output data frame.
-- `value.var`: optionally, change the name of the column that contains the values in your output data frame.
-- `melts_long`: optionally, change the regular expression that matches the pattern of the column names that contain the time points in your input data frame.
-- `set_numeric`: optionally, change the logical value that indicates whether the time points should be converted to numeric values in your output data frame.
+  return(shapiro_results_df)
+}
 
-For example, if you have a data frame called `my_data` that looks like this:
+overview <- function(data) {
+  structured <- structured(data)
+  glimpsed <- tidyverse2::glimpse(data)
+  skimsed <- skimr::skim(data)
+  df <- return(list(structured = structured, glimpsed = glimpsed, skimsed = skimsed))
+}
 
-| id | x1 | x2 | x3 |
-|----|----|----|----|
-| A  | 10 | 20 | 30 |
-| B  | 15 | 25 | 35 |
-| C  | 12 | 22 | 32 |
+structured <- function(newdf = NULL, to_csv = FALSE, output_file = "structured.csv") {
+        if(is.null(newdf)) { 
+                stop("Hello :) 
 
-And you want to transform it to a long format with the time points as numeric values, you can use the following code:
+This function provides how the dataframe of your interest is structured. Names of column, their position, class, nrows, unique values and examples. Also gives possibility to export dataframe as .csv file. 
 
-```r
-switch_structure(data = my_data, type = "long", id.vars = "id")
-```
+Arguments: 
+input = ... (name of your dataframe)
+to_csv = FALSE by default; if set to TRUE writes .csv file into given pathway
+output_file = 'structured.csv' by default; necessary only if to_csv = TRUE 
 
-The output will look like this:
+ask me :) godbersengodber@gmail.com")}
+        if(!is.null(newdf)) {
+  vars <- colnames(newdf)
+  position <- seq_along(vars)
+  class <- sapply(newdf, class)
+  nrows <- nrow(newdf)
+  n_unique <- sapply(newdf, function(x) length(unique(x)))
+  n_observations <- sapply(newdf, function(x) sum(!is.na(x)))
+  rate <- n_observations/nrows
+  example <- sapply(newdf, function(x) paste0(x[1], ", ", x[5]))
+  df_structured <- data.frame(variable = vars, position = position, class = class, nrows = nrows, n_unique = n_unique, n_obs = n_observations, rate = rate, example_rows = example)
+  if(to_csv == TRUE) { 
+          write.csv(df_structured, file = output_file)
+          }
+  return(df_structured)
+}}
 
-| id | time | value |
-|----|------|-------|
-| A  | 1    | 10    |
-| B  | 1    | 15    |
-| C  | 1    | 12    |
-| A  | 2    | 20    |
-| B  | 2    | 25    |
-| C  | 2    | 22    |
-| A  | 3    | 30    |
-| B  | 3    | 35    |
-| C  | 3    | 32    |
 
-I hope this helps you understand and use this function for your first package in R. If you have any questions, please feel free to contact the author of the function at godbersengodber@gmail.com. 😊
+# Define a function that creates custom histograms based on user inputs
+create_custom_histograms <- function(data, method_col, bins = 30, color = "blue", alpha = 0.5, to_jpg = FALSE, file_name = "histograms.csv") {
+
+  # Create a new column named "method_id" containing a number for each unique 'methode' name
+  data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[method_col]])))
+
+  # Create an empty list to store the histograms
+  histograms <- list()
+
+  # Loop over the names of the numeric columns
+  for (k in names(data)) {
+    # Check if the k-th column is numeric
+    if (is.numeric(data[[k]])) {
+      # Create a histogram for the k-th column
+      hist <- ggplot(data, aes(x = .data[[k]])) +
+        geom_histogram(bins = bins, color = color, fill = color, alpha = alpha) +
+        facet_wrap(~ method_id, scales = "free") + theme_minimal() +
+        labs(title = paste("Histogram of", k))
+
+      # Save the histogram in the list
+      histograms[[k]] <- hist
+    }
+  }
+
+  # If the user chooses to save the histograms, save them as .csv files in a folder
+  if (to_jpg == TRUE) {
+    # Create a folder to store the histograms
+    dir.create("histograms")
+    for (k in names(data)) {
+      # Check if the k-th column is numeric
+      if (is.numeric(data[[k]])) {
+        # Create a file name for the histogram
+        filename <- paste("histograms/histogram_", k, ".jpg", sep = "")
+
+        # Save the histogram as a .csv file
+        ggsave(filename, histograms[[k]])
+      }
+    }
+  }
+
+  # Return a list of the data, the overview, and the histograms
+  return(list(data = data, overview = overview, histograms = histograms))
+}
+
+# Define a function that creates custom density plots based on user inputs
+create_custom_density_plots <- function(data, method_col, color = "blue", alpha = 0.5, to_jpg = FALSE, file_name = "density_plots.csv") {
+
+#Create a new column named “method_id” containing a number for each unique ‘methode’ #name
+data$method_id <- as.integer(factor(data[[method_col]], levels = unique(data[[method_col]])))
+
+# Create an empty list to store the density plots
+density_plots <- list()
+
+#Loop over the names of the numeric columns
+for (k in names(data)) { # Check if the k-th column is numeric if (is.numeric(data[[k]])) { # Create a density plot for the k-th column 
+
+dens <- ggplot(data, aes(x = .data[[k]], fill = factor(method_id))) + geom_density(color = color, alpha = alpha) + facet_wrap(~ method_id, scales = "free") + theme_minimal() + labs(title = paste("Density plot of", k))
+
+  # Save the density plot in the list
+  density_plots[[k]] <- dens
+}
+
+
+
+#If the user chooses to save the density plots, save them as .csv files in a folder
+if (to_jpg==TRUE) { # Create a folder to store the density plots dir.create("density_plots") for (k in names(data)) { # Check if the k-th column is #numeric 
+if (is.numeric(data[[k]])) { # Create a file name for the density plot 
+filename <- paste("density_plots/density_plot_", k, ".jpg", sep = "")
+
+    # Save the density plot as a .csv file
+    ggsave(filename, density_plots[[k]])
+  }
+}
+
+
+#Return a list of the data, the overview, and the density plots
+return(list(data = data, overview = overview, density_plots = density_plots)) 
+
+}
