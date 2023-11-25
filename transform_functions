@@ -140,3 +140,59 @@ tra_growthrates <- function(data, columns, na.omit = TRUE) {
   # Return the modified data frame
   return(data_copy)
 }
+
+help_tra <- function(typ = c("tra_switch", "tra_growthrates")) {
+  # Check if typ is a valid argument
+  if (!is.character(typ) || !typ %in% c("tra_switch", "tra_growthrates")) {
+    stop("typ must be one of 'tra_switch' or 'tra_growthrates', see help_tra()")
+  }
+  # Print the help text according to the typ argument
+  if (typ == "tra_switch") {
+    cat("tra_switch is a function that takes several parameters to process a dataset. It can switch the dataset from long to short format, or vice versa, depending on the type argument. It can also melt the dataset by column names or indices, and convert the time variable to numeric values. It takes the following arguments:
+
+- data: A data frame containing the dataset to be processed.
+- type: A character string specifying the desired format of the dataset. It can be either 'long' or 'short'. If 'long', the function will melt the dataset by the time variable and the value variable. If 'short', the function will cast the dataset by the id variables and the time variable.
+- variable.name: A character string specifying the name of the time variable in the formula. The default is 'time'.
+- value.var: A character string specifying the name of the value variable in the formula. The default is 'value'.
+- melts_long: A character string specifying the pattern of the column names that contain the time variable. The default is 'x\\d+'.
+- set_numeric: A logical value indicating whether to convert the time variable to numeric values. The default is TRUE.
+- ids: A vector of character strings or numeric values specifying the id variables in the formula. The default is NULL.
+- type_extra: A logical value indicating whether to melt the dataset by column indices if no pattern is given. The default is FALSE.
+
+The function returns a data frame with the processed dataset.
+
+An example of using the function is:
+
+# Load the airquality dataset
+data(airquality)
+
+# Process the dataset using tra_switch
+tra_switch(data = airquality, 
+           type = 'long', 
+           variable.name = 'month', 
+           value.var = 'ozone', 
+           melts_long = 'Month', 
+           set_numeric = TRUE, 
+           ids = c('Ozone', 'Solar.R', 'Wind', 'Temp', 'Day'), 
+           type_extra = FALSE)")
+  }
+  if (typ == "tra_growthrates") {
+    cat("tra_growthrates is a function that takes a data frame and a vector of column names as arguments. The function calculates the change rates between consecutive columns. The function removes the rows with missing values by default, unless specified otherwise. The function returns a modified data frame with the new columns added. It takes the following arguments:
+
+- data: A data frame containing the dataset to be processed.
+- columns: A vector of character strings specifying the names of the columns to be used for calculating the change rates. The length of the vector must be at least 2.
+- na.omit: A logical value indicating whether to remove the rows with missing values. The default is TRUE.
+
+The function returns a data frame with the original columns and the new columns added. The new columns have the names 'change_rate_column1_column2', where column1 and column2 are the names of the consecutive columns used for calculating the change rates.
+
+An example of using the function is:
+
+# Load the iris dataset
+data(iris)
+
+# Process the dataset using tra_growthrates
+tra_growthrates(data = iris, 
+                columns = c('Sepal.Length', 'Sepal.Width', 'Petal.Length', 'Petal.Width'), 
+                na.omit = TRUE)")
+  }
+}
