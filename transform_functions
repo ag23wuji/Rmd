@@ -1,0 +1,78 @@
+# Define a function called process_dataset that takes several parameters to process a dataset; this is just a test! 
+tra_process <- function(input_data, output_file = "meandata/means.csv",  cols_drop = NULL, cols_rename = NULL, cols_group = NULL, to_csv = FALSE) {
+  
+   # Convert the data frame to a tibble
+  data <- tibble::as_tibble(input_data)
+  
+  # Check the structure 
+  tidyverse::glimpse(data)
+  
+  
+  # If needed, delete a specific column
+  if (!is.null(cols_drop)) {
+    data <- data %>% 
+      dplyr::select(-all_of(cols_drop))
+  } 
+  
+    # If needed, rename specific columns
+  if (!is.null(cols_rename)) {
+    data <- dplyr::rename(data, !!cols_rename)
+    } 
+	
+	
+   # Group the data frame by specified columns and calculate the mean of numeric columns
+  if (!is.null(cols_group)) {
+    means_data <- data %>% 
+      dplyr::group_by(across(all_of(cols_group))) %>%
+      dplyr::summarize(across(where(is.numeric), mean, na.rm = TRUE), 
+                       across(where(is.character), ~first(.)),.groups="drop")
+    tidyverse::glimpse(means_data)
+    
+  }
+                       
+      else if (is.null(cols_group)) {print("Missing group parameter 'cols_group'. Set grouping variables from which the rows shall get meaned, otherwise it is not possible to create any summarized rows.")}
+    
+    
+    if(to_csv == TRUE) {
+    # Write the processed data frame to a CSV file
+    readr::write_csv(means_data, file = output_file)
+  } 
+  
+  return(means_data)
+}
+
+help_tra_process <- function() {
+  print("tra_process is a function that takes several parameters to process a dataset. It converts the input data frame to a tibble, drops and renames columns if needed, groups the data by specified columns and calculates the mean of numeric columns, and writes the processed data to a CSV file.
+
+The parameters are:
+
+- input_data: A data frame to be processed.
+- output_file: A character string specifying the path and name of the output CSV file. The default is 'meandata/means.csv'.
+- cols_drop: A character or numeric vector of column names or numbers to be dropped from the input data frame. The default is NULL, which means no columns will be dropped.
+- cols_rename: A named character or numeric vector of column names or numbers to be renamed in the input data frame. The names of the vector are the new names and the values are the old names or numbers. The default is NULL, which means no columns will be renamed.
+- cols_group: A character or numeric vector of column names or numbers to be used as grouping variables in the input data frame. The default is NULL, which means no grouping will be performed.
+- to_csv: A logical value indicating whether to write the processed data to a CSV file. The default is FALSE, which means no file will be written.
+
+The function returns a tibble of the processed data, which is also written to the output CSV file if to_csv is TRUE. It also prints the structure of the input and output data frames using glimpse.
+
+Examples of using the function are:
+
+# Load the iris dataset
+data(iris)
+
+# Process the iris dataset using tra_process with column names
+tra_process(input_data = iris, 
+            output_file = 'iris_means.csv', 
+            cols_drop = 'Species', 
+            cols_rename = c('Sepal.Length' = 'sepal_length', 'Sepal.Width' = 'sepal_width'), 
+            cols_group = c('Petal.Length', 'Petal.Width'),
+            to_csv = TRUE)
+
+# Process the iris dataset using tra_process with column numbers
+tra_process(input_data = iris, 
+            output_file = 'iris_means.csv', 
+            cols_drop = 5, 
+            cols_rename = c(`1` = 'sepal_length', `2` = 'sepal_width'), 
+            cols_group = c(3, 4),
+            to_csv = TRUE)")
+}
