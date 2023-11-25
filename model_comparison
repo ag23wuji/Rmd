@@ -1,0 +1,134 @@
+cc_lmer <- function(target, effects, data, test = "Chisq") {
+  # Überprüfen Sie, ob die Effekte eine Liste sind
+  if (!is.list(effects)) {
+    stop("effects must be a list of effects, see help_fct('create_compare_lmer'")
+  }
+  # Erstellen Sie eine Liste von Modellen mit lapply
+  model_list <- lapply(effects, function(x) lme4::lmer(as.formula(paste(target, "~", x)), data = data, REML = TRUE))
+  # Vergleichen Sie die Modelle mit do.call und anova
+  anova_table <- do.call(anova, c(model_list, test = test))
+  # Erstellen Sie eine Liste von Summaries mit lapply
+  summary_list <- lapply(model_list, summary)
+  # Geben Sie die ANOVA-Tabelle, die model_list und die summary_list zurück
+  results <- return(list(anova_table = anova_table, model_list = model_list, summary_list = summary_list))
+}
+
+cc_glmer <- function(target, effects, data, test = "Chisq") {
+  # Überprüfen Sie, ob die Effekte eine Liste sind
+  if (!is.list(effects)) {
+    stop("effects must be a list of effects, see help_fct('create_compare_lmer'")
+  }
+  # Erstellen Sie eine Liste von Modellen mit lapply
+  model_list <- lapply(effects, function(x) lme4::glmer(as.formula(paste(target, "~", x)), data = data, REML = TRUE))
+  # Vergleichen Sie die Modelle mit do.call und anova
+  anova_table <- do.call(anova, c(model_list, test = test))
+  # Erstellen Sie eine Liste von Summaries mit lapply
+  summary_list <- lapply(model_list, summary)
+  # Geben Sie die ANOVA-Tabelle, die model_list und die summary_list zurück
+  results <- return(list(anova_table = anova_table, model_list = model_list, summary_list = summary_list))
+}
+
+
+cc_lm <- function(target, effects, data, test = "Chisq") {
+  # Überprüfen Sie, ob die Effekte eine Liste sind
+  if (!is.list(effects)) {
+    stop("effects must be a list of effects, see help_fct('create_compare_lm'")
+  }
+  # Erstellen Sie eine Liste von Modellen mit lapply
+  model_list <- lapply(effects, function(x) lm(as.formula(paste(target, "~", x)), data = data, REML = TRUE))
+  # Vergleichen Sie die Modelle mit do.call und anova
+  anova_table <- do.call(anova, c(model_list, test = test))
+  # Erstellen Sie eine Liste von Summaries mit lapply
+  summary_list <- lapply(model_list, summary)
+  # Geben Sie die ANOVA-Tabelle, die model_list und die summary_list zurück
+  results <- return(list(anova_table = anova_table, model_list = model_list, summary_list = summary_list))
+}
+
+help_cc <- function(typ = c("lmer", "glmer", "lm")) {
+  # Check if typ is a valid argument
+  if (!is.character(typ) || !typ %in% c("lmer", "glmer", "lm")) {
+    stop("typ must be one of 'lmer', 'glmer', or 'lm', see help_cc()")
+  }
+  # Print the help text according to the typ argument
+  if (typ == "lmer") {
+    cat("cc_lmer is a function that creates and compares a list of linear mixed models using the lme4 package. It takes four arguments:
+
+- target: A character string specifying the name of the response variable in the formula.
+- effects: A list of character strings specifying the names of the fixed and random effects in the formula. Each element of the list represents a different model to be compared.
+- data: A data frame containing the variables in the formula.
+- test: A character string specifying the type of test to be used for comparing the models. The default is 'Chisq', which means a likelihood ratio test.
+
+The function returns a list of three elements:
+
+- anova_table: A data frame containing the ANOVA table for comparing the models, with the degrees of freedom, the log-likelihood, the AIC, the BIC, and the test statistic and p-value for each model.
+- model_list: A list of linear mixed model objects created by the lmer function, one for each element of the effects argument.
+- summary_list: A list of summary objects for each model, containing the coefficients, the variance components, the fitted values, and the residuals.
+
+An example of using the function is:
+
+# Load the sleepstudy dataset
+data(sleepstudy)
+
+# Create and compare three linear mixed models using cc_lmer
+cc_lmer(target = 'Reaction', 
+        effects = list('Days + (Days | Subject)', 
+                       'Days + (1 | Subject)', 
+                       '1 + (1 | Subject)'), 
+        data = sleepstudy, 
+        test = 'Chisq')")
+  }
+  if (typ == "glmer") {
+    cat("cc_glmer is a function that creates and compares a list of generalized linear mixed models using the lme4 package. It takes four arguments:
+
+- target: A character string specifying the name of the response variable and the family in the formula, separated by a tilde (~). For example, 'y ~ binomial' or 'y ~ poisson'.
+- effects: A list of character strings specifying the names of the fixed and random effects in the formula. Each element of the list represents a different model to be compared.
+- data: A data frame containing the variables in the formula.
+- test: A character string specifying the type of test to be used for comparing the models. The default is 'Chisq', which means a likelihood ratio test.
+
+The function returns a list of three elements:
+
+- anova_table: A data frame containing the ANOVA table for comparing the models, with the degrees of freedom, the log-likelihood, the AIC, the BIC, and the test statistic and p-value for each model.
+- model_list: A list of generalized linear mixed model objects created by the glmer function, one for each element of the effects argument.
+- summary_list: A list of summary objects for each model, containing the coefficients, the variance components, the fitted values, and the residuals.
+
+An example of using the function is:
+
+# Load the cbpp dataset
+data(cbpp)
+
+# Create and compare three generalized linear mixed models using cc_glmer
+cc_glmer(target = 'incidence ~ binomial', 
+         effects = list('size + period + (1 | herd)', 
+                        'size + (1 | herd)', 
+                        '1 + (1 | herd)'), 
+         data = cbpp, 
+         test = 'Chisq')")
+  }
+  if (typ == "lm") {
+    cat("cc_lm is a function that creates and compares a list of linear models using the lm function. It takes four arguments:
+
+- target: A character string specifying the name of the response variable in the formula.
+- effects: A list of character strings specifying the names of the fixed effects in the formula. Each element of the list represents a different model to be compared.
+- data: A data frame containing the variables in the formula.
+- test: A character string specifying the type of test to be used for comparing the models. The default is 'Chisq', which means a likelihood ratio test.
+
+The function returns a list of three elements:
+
+- anova_table: A data frame containing the ANOVA table for comparing the models, with the degrees of freedom, the residual sum of squares, the R-squared, the adjusted R-squared, and the test statistic and p-value for each model.
+- model_list: A list of linear model objects created by the lm function, one for each element of the effects argument.
+- summary_list: A list of summary objects for each model, containing the coefficients, the standard errors, the t-values, the p-values, the fitted values, and the residuals.
+
+An example of using the function is:
+
+# Load the mtcars dataset
+data(mtcars)
+
+# Create and compare three linear models using cc_lm
+cc_lm(target = 'mpg', 
+      effects = list('cyl + disp + hp + wt', 
+                     'cyl + disp + hp', 
+                     'cyl + disp'), 
+      data = mtcars, 
+      test = 'Chisq')")
+  }
+}
